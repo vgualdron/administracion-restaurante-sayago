@@ -17,7 +17,11 @@ import DependenciaProducto from '@/views/DependenciaProducto'
 import CargarStock from '@/views/CargarStock'
 import ListarStock from '@/views/ListarStock'
 import CierreCaja from '@/views/CierreCaja'
-import Factura from '@/views/Factura'
+/* import Factura from '@/views/Factura' */
+import VerReportes from '@/views/VerReportes'
+import ControlFiscal from '@/views/ControlFiscal'
+import CopiaFactura from '@/views/CopiaFactura'
+
 Vue.use(Router)
 export default new Router({
   mode: 'hash',
@@ -81,10 +85,20 @@ export default new Router({
           component: CierreCaja
         },
         {
-          path: 'factura',
-          name: 'Generar Factura',
-          component: Factura
-        }
+          path: 'verreportes',
+          name: 'Ver Reportes',
+          component: VerReportes
+        },
+        {
+          path: 'controlfiscal',
+          name: 'Control Fiscal',
+          component: ControlFiscal
+        },
+        {
+          path: 'copiafactura',
+          name: 'Copia de Facturas',
+          component: CopiaFactura
+        },
       ]
     },
     {

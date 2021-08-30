@@ -2,7 +2,7 @@
   <div>
     <b-row>
       <b-col cols="12">
-        <b-card border-variant="primary" header-bg-variant="primary" :header="'<strong>Cierre de caja</strong>'" tag="article" class="m-3 mt-3">
+        <b-card border-variant="primary" header-bg-variant="primary" :header="'<strong>Control Fiscal</strong>'" tag="article" class="m-3 mt-3">
           <b-row class="mt-1 mb-2">
             <b-col cols="12">
               <b-form-group>
@@ -17,7 +17,7 @@
                     <b-button variant="primary" :disabled="!filtro" @click.stop="filtro = ''">x</b-button>
                     <b-btn
                       class="ml-3"
-                      @click.stop="consultarCierreCaja(); consultarGastos();"
+                      @click.stop="consultarCierreCaja()"
                       variant="primary">
                       Consultar </b-btn>
                   </b-input-group-append>
@@ -30,7 +30,7 @@
             <b-col cols="12" class="text-center" v-if="items && items.length > 0">
               <b-form-checkbox
                 id="checkbox-1"
-                v-model="limpiarBase"
+                v-model="imprimirTicket"
                 name="checkbox-1"
                 value="SI"
                 unchecked-value="NO"
@@ -39,7 +39,7 @@
               </b-form-checkbox>
               <b-btn
                 class="ml-3"
-                @click.stop="generarInformeCierreCaja();"
+                @click.stop="generarReporteControlFiscal();"
                 variant="primary">
                 Generar Informe </b-btn>
             </b-col>
@@ -48,27 +48,39 @@
           <b-row class="mt-1 mb-2">
             <b-col cols="12" ref="htmlCierreCaja">
               <template v-if="items && items.length > 0">
-                <h4 style='text-align:center'>Cierre de caja del dia {{filtro}} </h4>
+                <h4 style='text-align:center'>Control fiscal del dia {{filtro}} </h4>
 
                 <table style='width:100%;'  cellspacing='0' cellpadding='0'>
                   <tr style='border: solid 1px black;'>
-                    <th style='width:40%; border: solid 1px black; padding: 10px;text-align:center;'>PRODUCTO</th>
-                    <th style='width:20%; border: solid 1px black; padding: 10px;text-align:center;'>PRECIO</th>
-                    <th style='width:20%; border: solid 1px black; padding: 10px;text-align:center;'>CANTIDAD</th>
-                    <th style='width:20%; border: solid 1px black; padding: 10px;text-align:center;'>TOTAL</th>
+                    <th colspan="4" style='width:40%; border: solid 1px black; padding: 10px;text-align:center;'>VENTAS POR FORMA DE PAGO</th>
+                  </tr>
+                </table>
+                
+                <br>
+
+                <table v-if="dataReporte" style='width:100%;'  cellspacing='0' cellpadding='0'>
+                  
+                  <tr style='border: solid 1px black;'>
+                    <td colspan="2" style='border: solid 1px black; padding: 10px;text-align:center;'>TOTAL FACTURADO</td>
+                    <td colspan="2" style='border: solid 1px black; padding: 10px;text-align:center;'>${{dataReporte.totalRegistrado}}</td>
                   </tr>
 
-                  <tr v-for="(item, i) in items" :key="'tr_item_' + i" style='border: solid 1px black;'>
-                    <td style='width:40%;border: solid 1px black;padding: 5px;text-align:center;'>{{item.prod_descripcion}}</td>
-                    <td style='width:20%;border: solid 1px black;padding: 5px;text-align:center;'>{{format(item.prod_precio)}}</td>
-                    <td style='width:20%;border: solid 1px black;padding: 5px;text-align:center;'>{{item.cantidad}}</td>
-                    <td style='width:20%;border: solid 1px black;padding: 5px;text-align:center;'>{{format(item.total)}}</td>
+                  <tr style='border: solid 1px black;'>
+                    <td colspan="1" style='border: solid 1px black; padding: 10px;text-align:center;'>{{dataReporte.cantidadVentasEfectivo}}</td>
+                    <td colspan="1" style='border: solid 1px black; padding: 10px;text-align:center;'>EFECTIVO</td>
+                    <td colspan="1" style='border: solid 1px black; padding: 10px;text-align:center;'>{{dataReporte.porcentajeVentasEfectivo}}</td>
+                    <td colspan="1" style='border: solid 1px black; padding: 10px;text-align:center;'>${{dataReporte.totalVentasEfectivo}}</td>
+                  </tr>
+
+                  <tr style='border: solid 1px black;'>
+                    <td colspan="1" style='border: solid 1px black; padding: 10px;text-align:center;'>{{dataReporte.cantidadVentasTarjeta}}</td>
+                    <td colspan="1" style='border: solid 1px black; padding: 10px;text-align:center;'>TARJETA CRED / DEBI</td>
+                    <td colspan="1" style='border: solid 1px black; padding: 10px;text-align:center;'>{{dataReporte.porcentajeVentasTarjeta}}</td>
+                    <td colspan="1" style='border: solid 1px black; padding: 10px;text-align:center;'>${{dataReporte.totalVentasTarjeta}}</td>
                   </tr>
                   <tr style='border: solid 1px black;'>
-                    <td style='width:40%; padding: 10px;'></td>
-                    <td style='width:20%; padding: 10px;'></td>
-                    <td style='width:20%; border: solid 1px black; padding: 10px;text-align:center;font-weight:bold;'>SUB. TOTAL</td>
-                    <td style='width:20%; border: solid 1px black; padding: 10px;text-align:center;font-weight:bold;'>{{getTotalVentas()}}</td>
+                    <td colspan="2" style='border: solid 1px black; padding: 10px;text-align:center;'>TOTAL FORMA DE PAGO</th>
+                    <td colspan="2" style='border: solid 1px black; padding: 10px;text-align:center;'>${{dataReporte.totalRegistrado}}</td>
                   </tr>
 
                 </table>
@@ -77,17 +89,51 @@
 
                 <table style='width:100%;'  cellspacing='0' cellpadding='0'>
                   <tr style='border: solid 1px black;'>
-                    <th style='width:70%; border: solid 1px black; padding: 10px;text-align:center;'>EGRESO</th>
-                    <th style='width:30%; border: solid 1px black; padding: 10px;text-align:center;'>COSTO</th>
+                    <th colspan="4" style='width:40%; border: solid 1px black; padding: 10px;text-align:center;'>VENTAS POR DEPARTAMENTO</th>
                   </tr>
+                </table>
+               
+                <template v-for="(departamento, d) in dataReporte.departamentos">
+                  <br :key="'br_depa_' + d">
+                  <table :key="'table_depa_' + d" style='width:100%;'  cellspacing='0' cellpadding='0'>
+                    
+                    <tr style='border: solid 1px black;'>
+                      <th colspan="4" style='width:40%; border: solid 1px black; padding: 10px;text-align:center;'>DEPARTAMENTO {{departamento.nombre}}</th>
+                    </tr>
 
-                  <tr v-for="(gasto, g) in gastos" :key="'tr_gasto_' + g" style='border: solid 1px black;'>
-                    <td style='border: solid 1px black;padding: 5px;text-align:center;'>{{gasto.descripcion}}</td>
-                   <td style='border: solid 1px black;padding: 5px;text-align:center;'>{{format(gasto.valor)}}</td>
+                    <tr style='border: solid 1px black;'>
+                      <td colspan="1" style='border: solid 1px black; padding: 10px;text-align:center;'>GRAV</td>
+                      <td colspan="2" style='border: solid 1px black; padding: 10px;text-align:center;'>VR BASE</td>
+                      <td colspan="1" style='border: solid 1px black; padding: 10px;text-align:center;'>VR ICO</td>
+                    </tr>
+
+                    <tr style='border: solid 1px black;'>
+                      <td colspan="1" style='border: solid 1px black; padding: 10px;text-align:center;'>{{(departamento.grav) * 100}}</td>
+                      <td colspan="2" style='border: solid 1px black; padding: 10px;text-align:center;'>${{departamento.valorBase}}</td>
+                      <td colspan="1" style='border: solid 1px black; padding: 10px;text-align:center;'>${{departamento.valorIco}}</td>
+                    </tr>
+
+                    <tr style='border: solid 1px black;'>
+                      <td colspan="1" style='border: solid 1px black; padding: 10px;text-align:center;'>TOTAL</td>
+                      <td colspan="2" style='border: solid 1px black; padding: 10px;text-align:center;'>${{departamento.valorBase}}</td>
+                      <td colspan="1" style='border: solid 1px black; padding: 10px;text-align:center;'>${{departamento.valorIco}}</td>
+                    </tr>
+
+                  </table>
+                </template> 
+                <br>
+
+                <table style='width:100%;'  cellspacing='0' cellpadding='0'>
+                  <tr style='border: solid 1px black;'>
+                    <th colspan="2" style='width:40%; border: solid 1px black; padding: 10px;text-align:center;'>TOTAL DEPARTAMENTOS</th>
                   </tr>
                   <tr style='border: solid 1px black;'>
-                    <td style='width:20%; border: solid 1px black; padding: 10px;text-align:center;font-weight:bold;'>SUB. TOTAL</td>
-                    <td style='width:20%; border: solid 1px black; padding: 10px;text-align:center;font-weight:bold;'>{{getTotalGastos()}}</td>
+                    <td colspan="1" style='width:40%; border: solid 1px black; padding: 10px;text-align:center;'>VR BASE</td>
+                    <td colspan="1" style='width:40%; border: solid 1px black; padding: 10px;text-align:center;'>VR ICO</td>
+                  </tr>
+                  <tr style='border: solid 1px black;'>
+                    <td colspan="1" style='width:40%; border: solid 1px black; padding: 10px;text-align:center;'>${{dataReporte.totalValorBaseDepartamentos}}</td>
+                    <td colspan="1" style='width:40%; border: solid 1px black; padding: 10px;text-align:center;'>${{dataReporte.totalValorIcoDepartamentos}}</td>
                   </tr>
                 </table>
 
@@ -95,20 +141,21 @@
 
                 <table style='width:100%;'  cellspacing='0' cellpadding='0'>
                   <tr style='border: solid 1px black;'>
-                    <th style='width:33%; border: solid 1px black; padding: 10px;text-align:center;'>INGRESO</th>
-                    <th style='width:33%; border: solid 1px black; padding: 10px;text-align:center;'>EGRESO</th>
-                    <th style='width:33%; border: solid 1px black; padding: 10px;text-align:center;'>TOTAL EN CAJA</th>
+                    <td colspan="1" style='width:40%; border: solid 1px black; padding: 10px;text-align:center;'>VENTAS NETAS</td>
+                    <td colspan="1" style='width:40%; border: solid 1px black; padding: 10px;text-align:center;'>${{dataReporte.ventasNetas}}</td>
                   </tr>
                   <tr style='border: solid 1px black;'>
-                    <th style='width:33%; border: solid 1px black; padding: 5px;text-align:center;'> {{getTotalVentas()}} </th>
-                    <th style='width:33%; border: solid 1px black; padding: 5px;text-align:center;'> {{getTotalGastos()}} </th>
-                    <th style='width:33%; border: solid 1px black; padding: 5px;text-align:center;'> {{getTotalCierre()}} </th>
+                    <td colspan="1" style='width:40%; border: solid 1px black; padding: 10px;text-align:center;'>TOTAL REGISTRADO</td>
+                    <td colspan="1" style='width:40%; border: solid 1px black; padding: 10px;text-align:center;'>${{dataReporte.totalRegistrado}}</td>
                   </tr>
                 </table>
+
               </template>
-              <b-alert v-else show variant="danger">No hay items para hacer cierre de caja. Seleccione otra fecha y genere el cierre de caja.</b-alert>
+              <b-alert v-else show variant="danger">No hay items para hacer el reporte de control fiscal. Seleccione otra fecha y consulte de nuevo.</b-alert>
             </b-col>
           </b-row>
+
+          
           
         </b-card>
       </b-col>
@@ -124,7 +171,7 @@
 <script>
 var self = this;
 export default {
-  name: "CierreCaja",
+  name: "ControlFiscal",
   data: function() {
     return {
       date: null,
@@ -137,7 +184,8 @@ export default {
       filtro: "",
       porPagina: 20,
       paginaActual: 1,
-      limpiarBase: "SI"
+      imprimirTicket: "SI",
+      dataReporte: null
     };
   },
   methods: {
@@ -166,6 +214,9 @@ export default {
       this.$http.get("ws/cierrecaja/", frm).then(resp => {
           self.items = resp.data;
           self.$loader.close();
+          if (self.items.length > 0) {
+            self.consultarReporteControlFiscal();
+          }
         })
         .catch(resp => {
           self.$loader.close();
@@ -176,17 +227,14 @@ export default {
           }
         });
     },
-    consultarGastos: function() {
+    consultarReporteControlFiscal: function() {
       this.$loader.open({ message: "Cargando ..." });
       var self = this;
       var frm = {
-        params: {
-          fecha: this.filtro,
-          gastos: 'SI'
-        }
+        fecha: this.filtro
       };
-      this.$http.get("ws/cierrecaja/", frm).then(resp => {
-          self.gastos = resp.data;
+      this.$http.post("ws/controlfiscal/", frm).then(resp => {
+          self.dataReporte = resp.data;
           self.$loader.close();
         })
         .catch(resp => {
@@ -194,11 +242,11 @@ export default {
           if (resp.data && resp.data.mensaje) {
             self.$toast.error(resp.data.mensaje);
           } else {
-            self.$toast.error("No se pudo obtener los gastos para hacer cierre de caja.");
+            self.$toast.error("No se pudo obtener los datos para hacer el reporte de control fiscal.");
           }
         });
     },
-    generarInformeCierreCaja: function() {
+    generarReporteControlFiscal: function() {
       var self = this;
       this.$alertify
         .confirmWithTitle(
@@ -216,7 +264,7 @@ export default {
             var hiddenFieldNombre = document.createElement("input"); 
             hiddenFieldNombre.setAttribute("type", "hidden");
             hiddenFieldNombre.setAttribute("name", "nombre");
-            hiddenFieldNombre.setAttribute("value", "Cierre de caja " + self.filtro + ".pdf");
+            hiddenFieldNombre.setAttribute("value", "Control fiscal " + self.filtro + ".pdf");
             form.appendChild(hiddenFieldNombre);
 
             var hiddenFieldHtml = document.createElement("input"); 
@@ -230,25 +278,23 @@ export default {
             window.open('', 'view');
 
             form.submit();
-            if (self.limpiarBase == 'SI') {
-              self.depurarCierreCaja();
-              self.imprimirTicketCierreCaja();
+            if (self.imprimirTicket == 'SI') {
+              self.imprimirTicketControlFiscal();
             }
           },
           function() {}
         )
         .set("labels", { ok: "Aceptar", cancel: "Cancelar" });
     },
-    imprimirTicketCierreCaja: function() {
+    imprimirTicketControlFiscal: function() {
       this.$loader.open({ message: "Cargando ..." });
       var self = this;
       var frm = {
         fecha: this.filtro,
-        items: this.items,
-        gastos: this.gastos,
-        titulo: 'Cierre de caja del dia ' + this.filtro
+        data: this.dataReporte
       };
-      this.$http.post("../mesero/ws/ticket/cierre-caja.php", frm).then(resp => {
+      this.$http.post("../mesero/ws/ticket/control-fiscal.php", frm).then(resp => {
+          // self.items = resp.data;
           self.$loader.close();
         })
         .catch(resp => {
@@ -256,27 +302,7 @@ export default {
           if (resp.data && resp.data.mensaje) {
             self.$toast.error(resp.data.mensaje);
           } else {
-            self.$toast.error("No se pudo imprimir ticket al hacer cierre de caja.");
-          }
-        });
-    },
-    depurarCierreCaja: function() {
-      this.$loader.open({ message: "Cargando ..." });
-      var self = this;
-      var frm = {
-        params: {
-          fecha: this.filtro
-        }
-      };
-      this.$http.get("ws/cierrecaja/depurar.php", frm).then(resp => {
-          self.$loader.close();
-        })
-        .catch(resp => {
-          self.$loader.close();
-          if (resp.data && resp.data.mensaje) {
-            self.$toast.error(resp.data.mensaje);
-          } else {
-            self.$toast.error("No se pudo depurar al hacer cierre de caja.");
+            self.$toast.error("Error al imprimir ticket de control fiscal.");
           }
         });
     },
