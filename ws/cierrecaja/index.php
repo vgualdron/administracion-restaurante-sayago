@@ -28,10 +28,11 @@ try {
                                     INNER join pinchetas_restaurante.pedido pedi on (pedi.pedi_id = depe.pedi_id)
                                     inner join pinchetas_restaurante.estadopedido espe on (espe.espe_id = pedi.espe_id)
                                     WHERE espe.espe_descripcion = 'PAGO'
-                                    and pedi.pedi_fecha = ?
+                                    AND pedi.pedi_fecha BETWEEN DATE_ADD(?, INTERVAL 0 SECOND) AND DATE_ADD(?, INTERVAL 86399 SECOND)
                                     GROUP BY prod.prod_id
                                     ORDER BY prod.prod_descripcion;");
         $sql->bindValue(1, $_GET['fecha']);
+		$sql->bindValue(2, $_GET['fecha']);
         $sql->execute();
         $sql->setFetchMode(PDO::FETCH_ASSOC);
         header("HTTP/1.1 200 OK");
