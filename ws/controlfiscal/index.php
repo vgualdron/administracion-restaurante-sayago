@@ -285,5 +285,4 @@ $data->totalValorBaseDepartamentos = number_format($totalValorBaseDepartamentos,
 $data->totalValorIcoDepartamentos = number_format($totalValorIcoDepartamentos,2,",",".");
 
 print_r(json_encode($data));
-
 ?>
