@@ -35,13 +35,14 @@ try {
 					FROM pinchetas_restaurante.pedido pedi
 					inner join pinchetas_restaurante.estadopedido espe using (espe_id)
 					inner join pinchetas_restaurante.mesa mesa on (pedi.mesa_id = mesa.mesa_id)
-					WHERE pedi.pedi_fecha = ? 
+					WHERE pedi.pedi_fecha BETWEEN DATE_ADD(?, INTERVAL 0 SECOND) AND DATE_ADD(?, INTERVAL 86399 SECOND)
 					AND espe.espe_descripcion = ?
 					AND pedi.pedi_numerofactura > 0
 					ORDER BY pedi.pedi_id DESC;");
                     							
         $sql->bindValue(1, $_GET['fecha']);
-	$sql->bindValue(2, 'PAGO');
+		$sql->bindValue(2, $_GET['fecha']);
+		$sql->bindValue(3, 'PAGO');
         $sql->execute();
         header("HTTP/1.1 200 OK");
         $result = $sql->fetchAll(PDO::FETCH_ASSOC);
